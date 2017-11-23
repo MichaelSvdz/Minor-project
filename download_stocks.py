@@ -18,4 +18,3 @@ for u in urlfiles:
                     testfile.retrieve(url, "datasets/" + u[7:-4] + "/" + row[0] + ".csv")
                 except:
                     pass
-                time.sleep(0.6)
