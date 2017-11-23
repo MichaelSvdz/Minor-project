@@ -19,6 +19,7 @@ for company in sp_reader:
     #data['SMA'].plot()
     needed_sma = data["SMA"][len(data["SMA"])-10:len(data["SMA"])-2]
     print(needed_sma)
+    print (meta_data)
 
     weighted_sma = 0
     for i in range(4,0,-1):
