@@ -13,6 +13,9 @@ class TI:
             ema += K * (Lijst[i] - ema)
         return ema
 
+    def GROW(selfs, Lijst):
+        return Lijst[0]-Lijst[len(Lijst)-1]
+
     def MACD(self, Lijst):
         K1 = 0.15
         shortema = TI.SMA(self, Lijst)
@@ -28,7 +31,10 @@ class TI:
     def STOCH(self, lijst_lowest, lijst_highest, close):
         lowest_low = min(lijst_lowest)
         highest_high = max(lijst_highest)
-        return (close - lowest_low)/(highest_high-lowest_low)
+        try:
+            return (close[0] - lowest_low)/(highest_high-lowest_low)
+        except ZeroDivisionError:
+            return None
 
     def RSI(self, lijst_close):
         up = []
@@ -42,7 +48,10 @@ class TI:
                 dn.append(lijst_close[i+1] - lijst_close[i])
         upavg = sum(up) / len(up)
         dnavg = sum(dn) / len(dn)
-        RMI = upavg / (upavg + dnavg)
+        try:
+            RMI = upavg / (upavg + dnavg)
+        except ZeroDivisionError:
+            RMI = None
         return RMI
 
     def AROONUP(self, lijst_close):
@@ -59,7 +68,7 @@ class TI:
         TP = []
         for i in range(len(lijst_close)):
             TP.append((lijst_close[i]+lijst_lowest[i]+lijst_highest[i])/3)
-        mid_band = TI.SMA(TP)
+        mid_band = TI.SMA(self, TP)
         upper_band = mid_band + number_of_standard_deviations * statistics.stdev(TP)
         lower_band = mid_band - number_of_standard_deviations * statistics.stdev(TP)
         return [lower_band, mid_band, upper_band]
