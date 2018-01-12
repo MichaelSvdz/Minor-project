@@ -8,12 +8,17 @@ cov_matrix = np.cov(stockprices)
 #print(corr_matrix)
 
 def fitnessFunction(cov_matrix, x):
-    return np.dot(np.dot(x.T,np.transpose(cov_matrix)),x)               # unsystematic risk
+    return np.dot(np.dot(x.T,np.transpose(cov_matrix)),x)     # unsystematic risk
+
+def totalExpectedReturn(weights,expected_returns):
+    return
 
 print(fitnessFunction(cov_matrix, x))
 
 def weightsCalculator(stockprices, risk_free_rate):
     cov_matrix = np.cov(stockprices)
     weights = [1/len(stockprices)]*len(stockprices)
-    sharpe_ratio = (fitnessFunction(cov_matrix, weights)-risk_free_rate)/
+
+
+    sharpe_ratio = (-risk_free_rate)/ math.sqrt(fitnessFunction(cov_matrix, weights))
 
