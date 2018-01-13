@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import csv
 import glob
@@ -5,9 +6,9 @@ import random
 from programming import Fitness as fit
 
 # Set limitations
-popSize = 10 # Size of population
-numOfGens = 100 # Amount of generation
-minSIP = 2 # Minimum amount of stocks in portfolio
+popSize = 20 # Size of population
+numOfGens = 200 # Amount of generation
+minSIP = 4 # Minimum amount of stocks in portfolio
 maxSIP = 6 # Maximum amount of stocks in portfolio
 bestWeights = []
 
@@ -49,12 +50,12 @@ def roulettewheelselection(population):
             return p
 
 def mutate(chrom):
-    if (sum(j for j in chrom) < (maxSIP - 1) and sum(j for j in chrom) > (minSIP + 1)):
-        i = random.randint(0, chrLngth - 1)
-        if (chrom[i] == 0):
-            chrom[i] = 1
-        else:
-            chrom[i] = 0
+    activeStocks = sum(j for j in chrom)
+    i = random.randint(0, chrLngth - 1)
+    if (chrom[i] == 0 and activeStocks < maxSIP):
+        chrom[i] = 1
+    elif (activeStocks > minSIP):
+        chrom[i] = 0
 
 # Genetic Algorithm
 def genAlg(stocks):
@@ -66,6 +67,14 @@ def genAlg(stocks):
     for i in range(popSize):
         population.append(getRandomChromosome())
 
+    # Determine fitness
+    for p in population:
+        ftns, weights = determineFitness(p.chrom)
+        p.fitness = ftns
+        bestChrom = Chromosome(p.chrom[:], p.fitness)
+        bestWeights = weights
+    population.sort(key=lambda x: x.fitness, reverse=True)
+
     for i in range(numOfGens):
         # Make new population
         newpopulation = []
@@ -73,8 +82,8 @@ def genAlg(stocks):
         # Elitism 2 chromosomes
         newpopulation.append(population[0])
         newpopulation.append(population[1])
-        del population[0]
-        del population[1]
+        population.pop(1)
+        population.pop(0)
 
         for i in range(0, popSize - 2, 2):
             # Roulette wheel selection
@@ -84,9 +93,11 @@ def genAlg(stocks):
                 parent2 = roulettewheelselection(population)
 
             # Crossover
+
             child1 = [0] * chrLngth
             child2 = [0] * chrLngth
             copoint = random.randint(0, chrLngth)
+            stocksLeftOfcopoint = sum(j for j in parent1.chrom[:copoint])
             for i in range(0, chrLngth):
                 if(i < copoint):
                     child1[i] = parent1.chrom[i]
@@ -94,6 +105,14 @@ def genAlg(stocks):
                 else:
                     child1[i] = parent2.chrom[i]
                     child2[i] = parent1.chrom[i]
+            while(sum(j for j in child1) < minSIP):
+                mutate(child1)
+            while(sum(j for j in child1) > maxSIP):
+                mutate(child1)
+            while(sum(j for j in child2) < minSIP):
+                mutate(child2)
+            while(sum(j for j in child2) > maxSIP):
+                mutate(child2)
 
             newpopulation.append(Chromosome(child1, 0))
             newpopulation.append(Chromosome(child2, 0))
@@ -101,7 +120,7 @@ def genAlg(stocks):
         population = newpopulation
 
         # Mutation
-        mutProb = 0.005
+        mutProb = 0.05
         for p in population:
             if (random.uniform(0.0, 0.1) > mutProb):
                 mutate(p.chrom)
@@ -110,20 +129,25 @@ def genAlg(stocks):
         for p in population:
             ftns, weights = determineFitness(p.chrom)
             p.fitness = ftns
+            if ftns > bestChrom.fitness:
+                bestChrom = Chromosome(p.chrom[:], p.fitness)
+                bestWeights = weights
         population.sort(key=lambda x: x.fitness, reverse=True)
 
-        bestChrom = population[0]
-        bestWeights = weights
+    finalPortfolio = {}
+    finalStocks = getStocknames(bestChrom.chrom)
+    print(('-----EINDE-----\nFitness: %s\nPortfolio:') % (bestChrom.fitness))
+    for i in range(len(finalStocks)):
+        finalPortfolio[finalStocks[i]] = round(bestWeights.x[i], 2)
+    for fp in finalPortfolio:
+        print(fp, finalPortfolio[fp])
 
-    print(getStocknames(bestChrom.chrom))
-    print(bestChrom.fitness)
-    print(bestWeights)
-
-for i in range(10):
+for i in range(50):
     stocks = []
     datafiles =  glob.glob("datasets/*/*.csv")
     for f in datafiles:
         stocks.append(re.split('\/(.*?\/.*?).csv', f)[1])
+    bestChrom = Chromosome([0]*len(stocks), 0.00001)
     genAlg(stocks)
 
 #fit.getDataClosed(population)

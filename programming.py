@@ -50,7 +50,8 @@ class Fitness:
         return np.dot(weights,expected_returns)
 
     def negativeSharpeRatio(weights,returns,risk_free_rate,cov_matrix):
-        return -(Fitness.totalExpectedReturn(weights,returns)-risk_free_rate)/ math.sqrt(Fitness.unsystematicRisk(cov_matrix, weights))
+        zero = math.sqrt(Fitness.unsystematicRisk(cov_matrix, weights))
+        return -(Fitness.totalExpectedReturn(weights,returns)-risk_free_rate)/ zero
 
     def weightsCalculator(returnsStocks, risk_free_rate, allow_short = False):
         cov_matrix = np.cov(returnsStocks)
