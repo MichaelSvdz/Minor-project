@@ -14,7 +14,8 @@ class TI:
         return ema
 
     def GROW(selfs, Lijst):
-        return Lijst[0]-Lijst[len(Lijst)-1]
+        ding = Lijst[0]-Lijst[len(Lijst)-1]
+        return ding/len(Lijst)
 
     def MACD(self, Lijst):
         K1 = 0.15

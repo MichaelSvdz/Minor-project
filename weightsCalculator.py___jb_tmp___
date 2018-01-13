@@ -9,25 +9,16 @@ def getData(stocks):
     files = []
     for s in stocks:
         files.append("datasets/*/" + s + ".csv")
-    print(files)
-    '''
-    datafiles =  glob.glob("datasets/*/*.csv")
-    for file_name in datafiles:
-        #print(file_name)
-        with open(file_name, "r") as f:
+    for f in files:
+        with open(f, "r") as f:
             close_prices = []
-            time_stamp = []
-    
             for row in f:
                 row = row.strip()
                 row = row.split(",")
                 close_prices.append(row[3])
-                time_stamp.append(row[0])
-    
             del close_prices[0]
-            del time_stamp[0]
             close_prices = list(map(float, close_prices))
-    '''
+    print(close_prices)
 
 getData(stocks)
 
