@@ -43,8 +43,11 @@ def getMeanReturns(returns):
         mean_returns.append(np.mean(returns[i]))
     return mean_returns
 
-def unsystematicRisk(cov_matrix, x):
-    return np.dot(np.dot(x.T,np.transpose(cov_matrix)),x)       # unsystematic risk
+def unsystematicRisk(cov_matrix, weights):
+    risk = np.dot(np.dot(weights.T,np.transpose(cov_matrix)),weights)# unsystematic risk
+    print("Risk: ")
+    print(risk)
+    return risk
 
 def totalExpectedReturn(weights,expected_returns):              # total Expected Return of portfolio
     return np.dot(weights,expected_returns)
@@ -54,10 +57,10 @@ def negativeSharpeRatio(weights,returns,risk_free_rate,cov_matrix):
 
 def weightsCalculator(returnsStocks, risk_free_rate, allow_short = False):
     cov_matrix = np.cov(returnsStocks)
-    print(cov_matrix)
+    #print(cov_matrix)
     weights = [1/len(returnsStocks)]*len(returnsStocks)                     # initial_weights
     returns = getMeanReturns(returnsStocks)
-    print(returns)
+    #print(returns)
     if not allow_short:
         bounds = [(0, None,) for i in range(len(weights))]              # boundaries for the weights
     else:
@@ -65,8 +68,8 @@ def weightsCalculator(returnsStocks, risk_free_rate, allow_short = False):
     cons = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}) # sum of weights must be 1
 
 
-
-    minimum = minimize(negativeSharpeRatio, weights, args=(returns,risk_free_rate,cov_matrix),
+    #negativeSharpeRatio
+    minimum = minimize(unsystematicRisk, weights, args=(cov_matrix),
                        bounds=bounds, constraints = cons)                                       # Maximize SharpeRatio
     return minimum
 '''
@@ -78,9 +81,10 @@ returnsStocks = [
 '''
 
 returnsStocks = calculateReturns(stocks)
-
+weights = [1/len(returnsStocks)]*len(returnsStocks)
+print(unsystematicRisk(np.cov(returnsStocks),array(weights)))
 
 #print(type(returnsStocks[0]))
-gewichten = weightsCalculator(returnsStocks,0.05)
-print(gewichten)
+#gewichten = weightsCalculator(returnsStocks,0.05)
+#print(gewichten)
 
