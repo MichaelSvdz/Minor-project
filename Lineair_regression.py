@@ -27,6 +27,7 @@ class Regression:
             else:
                 count_wrong += 1
 
-        print(count_good/ count_wrong)
+
+        print(count_good, count_wrong)
 
         return weights

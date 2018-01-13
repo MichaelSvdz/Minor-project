@@ -5,9 +5,11 @@ import glob
 myTI = TI()
 myRegression = Regression()
 number_of_samples = 15
+days  = 1
 
 dict_weights = {}
 
+#Make a list of all the data files and iterate over them
 datafiles =  glob.glob("datasets/*/*.csv")
 for file_name in datafiles:
     print(file_name)
@@ -18,6 +20,7 @@ for file_name in datafiles:
         close_prices = []
         time_stamp = []
 
+        #parse the data file
         for row in f:
             row = row.strip()
             row = row.split(",")
@@ -27,17 +30,40 @@ for file_name in datafiles:
             close_prices.append(row[4])
             time_stamp.append(row[0])
 
+        #remove the headers
         del open_prices[0]
         del high_prices[0]
         del low_prices[0]
         del close_prices[0]
         del time_stamp[0]
 
+        #Convert the lists to the right type
         open_prices = list(map(float, open_prices))
         high_prices = list(map(float, high_prices))
         low_prices = list(map(float, low_prices))
         close_prices = list(map(float, close_prices))
 
+        #Changes the lists so that you can specify an interval for the data
+        temp_close = []
+        temp_open = []
+        temp_low = []
+        temp_high = []
+
+        for i in range(len(close_prices)-1):
+            if i % days == 0:
+                temp_close.append(close_prices[i])
+                temp_open.append(open_prices[i])
+                temp_high.append(high_prices[i])
+                temp_low.append(low_prices[i])
+            else:
+                continue
+
+        close_prices = temp_close
+        open_prices = temp_open
+        low_prices = temp_low
+        high_prices = temp_high
+
+        #Making lists containing the technical indicators
         SMA = []
         EMA = []
         GROW = []
@@ -75,16 +101,19 @@ for file_name in datafiles:
         for i in range(len(close_prices)-number_of_samples -1):
             BBRAND.append(TI.BBRAND(myTI, close_prices[i:i+number_of_samples], low_prices[i:i+number_of_samples], high_prices[i:i+number_of_samples]))
 
-        daily_grow = []
+        #Makes a list containing the grow of a stock over a certain period
+        periodical_grow = []
 
         for i in range(len(close_prices)-number_of_samples-2):
-            daily_grow.append(close_prices[i]-close_prices[i+1])
+            periodical_grow.append(close_prices[i]-close_prices[i+1])
 
-        training_data = []
+        #Combine the periodical grow and the technical indicators in one list of lists
+        all_data = []
 
         for i in range(len(close_prices)-number_of_samples-2):
-            training_data.append([daily_grow[i], EMA[i+1]-SMA[i+1], GROW[i+1], MACD[i+1], STOCH[i+1], RSI[i+1], AROONDOWN[i+1], AROONUP[i+1]])
+            all_data.append([periodical_grow[i], EMA[i+1]-SMA[i+1], GROW[i+1], MACD[i+1], STOCH[i+1], RSI[i+1], AROONDOWN[i+1], AROONUP[i+1]])
 
-        dict_weights["{0}".format(file_name)] = Regression.regression(myRegression, training_data)
-
-        print(dict_weights)
+        #Makes a dictionary containing the best weights for every stock
+        dict_weights["{0}".format(file_name)], count = Regression.regression(myRegression, all_data)
+        print(count)
+print(dict_weights)
