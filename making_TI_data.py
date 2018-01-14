@@ -1,5 +1,5 @@
 from TICalculations import TI
-from Lineair_regression import Regression
+from Evolution import Regression
 import glob
 
 myTI = TI()
@@ -10,7 +10,7 @@ days  = 1
 dict_weights = {}
 
 #Make a list of all the data files and iterate over them
-datafiles =  glob.glob("datasets/*/*.csv")
+datafiles =  glob.glob("datasets/materials/*.csv")
 for file_name in datafiles:
     print(file_name)
     with open(file_name, "r") as f:

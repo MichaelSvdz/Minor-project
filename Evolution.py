@@ -3,8 +3,7 @@ import random
 class Regression:
 
     def regression(self, data):
-
-        #Creating training and test data
+        # Creating training and test data
         data_test = data[0:200]
         data_training = data[200:1000]
 
@@ -12,7 +11,7 @@ class Regression:
         count_good = 0
         count_wrong = 0
 
-        #Creating 50 sets of weights
+        # Creating 50 sets of weights
         for i in range(50):
             weights_one = []
             for i in range(1, len(data[0])):
@@ -61,7 +60,6 @@ class Regression:
 
         #Get the best weight set by calling the training function
         best_weights = train_weights(weights,data_training)
-        print(best_weights)
 
         #See how good the best weight set does on the test data
         for day in data_test:
