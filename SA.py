@@ -32,13 +32,6 @@ def getStocknames(chrom):
             stks.append(stocks[i])
     return(stks)
 
-'''
-def determineFitness(chrom):
-    stks =
-    ftns, weights =
-    return(ftns, weights.x)
-'''
-
 def roulettewheelselection(population):
     max = sum(p.fitness for p in population)
     pick = random.uniform(0, max)
@@ -60,6 +53,7 @@ def mutate(chrom):
 def genAlg(stocks):
     # Set lengt of chromosome
     global chrLngth
+    global wantedReturn, sharpe, evo, allow_short
     chrLngth = len(stocks)
 
     # Make random population
@@ -69,7 +63,7 @@ def genAlg(stocks):
 
     # Determine fitness and sort for elitism
     for p in population:
-        ftns, weights, realReturn = fit.fitness(getStocknames(p.chrom))
+        ftns, weights, realReturn = fit.fitness(getStocknames(p.chrom), wantedReturn, sharpe, evo, allow_short)
         p.fitness = ftns
         p.weights = weights
         p.realReturn = realReturn
@@ -136,7 +130,7 @@ def genAlg(stocks):
 
         # Determine fitness and sort
         for p in population:
-            ftns, weights, realReturn = fit.fitness(getStocknames(p.chrom))
+            ftns, weights, realReturn = fit.fitness(getStocknames(p.chrom), wantedReturn, sharpe, evo, allow_short)
             p.fitness = ftns
             p.weights = weights
             p.realReturn = realReturn
@@ -154,24 +148,35 @@ def genAlg(stocks):
     for fp in finalPortfolio:
         print(fp, finalPortfolio[fp])
 
-# Run algorithm multiple times
-for i in range(50):
-    # Get all possible stocks
-    stocks = []
-    datafiles =  glob.glob("datasets/*/*.csv")
-    for f in datafiles:
-        stocks.append(re.split('\/(.*?\/.*?).csv', f)[1])
+print("Welcome to the portfolio advisor")
+print("To advise the optimal portfolio, please answer these questions:")
+wantedReturn = float(input("What is the minimum return you want (higher return, higher risk)?     "))
+print("Optimize portfolioweigts by Sharpes ratio or minimum variance?")
+sharpe = True if input("Type 'sharpe' for Sharpe, or anything else for minimum variance     ").lower() == 'sharpe' else False
+print("Calculate expected return by mean or evolutionary strategy?")
+evo = False if input("Type 'mean' for mean, or anything else for evolutionary strategy     ").lower() == 'mean' else True
+allow_short = True if input("Type '1' for going short on stocks     ").lower() == '1' else False
+if evo:
+    print("This will take 15 minutes")
+else:
+    print("This will take 5 minutes")
 
-    # Set variables
-    bestChrom = Chromosome([0]*len(stocks), 0.00001, [], 0.0)
-    bestWeights = []
+# Get all possible stocks
+stocks = []
+datafiles =  glob.glob("datasets/*/*.csv")
+for f in datafiles:
+    stocks.append(re.split('\/(.*?\/.*?).csv', f)[1])
 
-    # Set limitations
-    mutProb = 0.05
-    popSize = 100 # Size of population
-    numOfGens = 50 # Amount of generation
-    minSIP = 3 # Minimum amount of stocks in portfolio
-    maxSIP = 10 # Maximum amount of stocks in portfolio
+# Set variables
+bestChrom = Chromosome([0]*len(stocks), 0.00001, [], 0.0)
+bestWeights = []
 
-    # Find best portfolio with these stocks
-    genAlg(stocks)
+# Set limitations
+mutProb = 0.05
+popSize = 100 # Size of population
+numOfGens = 50 # Amount of generation
+minSIP = 3 # Minimum amount of stocks in portfolio
+maxSIP = 10 # Maximum amount of stocks in portfolio
+
+# Find best portfolio with these stocks
+genAlg(stocks)
