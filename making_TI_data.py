@@ -1,16 +1,19 @@
 from TICalculations import TI
 from Evolution import Regression
 import glob
+import json
 
 myTI = TI()
 myRegression = Regression()
 number_of_samples = 15
-days  = 1
 
+days  = 5
+list_count = []
 dict_weights = {}
 
 #Make a list of all the data files and iterate over them
-datafiles =  glob.glob("datasets/materials/*.csv")
+datafiles =  glob.glob("datasets/*/*.csv")
+
 for file_name in datafiles:
     print(file_name)
     with open(file_name, "r") as f:
@@ -113,7 +116,15 @@ for file_name in datafiles:
         for i in range(len(close_prices)-number_of_samples-2):
             all_data.append([periodical_grow[i], EMA[i+1]-SMA[i+1], GROW[i+1], MACD[i+1], STOCH[i+1], RSI[i+1], AROONDOWN[i+1], AROONUP[i+1]])
 
+        stock_name = file_name.split("\\")[2].split(".")[0]
         #Makes a dictionary containing the best weights for every stock
-        dict_weights["{0}".format(file_name)], count = Regression.regression(myRegression, all_data)
+        dict_weights["{0}".format(stock_name)], count = Regression.regression(myRegression, all_data)
         print(count)
+        print(stock_name)
+        list_count.append(count)
+
+with open("weight_dict.txt", "r+") as dict_file:
+    dict_file.write(json.dumps(dict_weights))
+
 print(dict_weights)
+print(list_count)
