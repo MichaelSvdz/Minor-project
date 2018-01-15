@@ -85,4 +85,3 @@ returnsStocks = calculateReturns(stocks)
 #print(type(returnsStocks[0]))
 gewichten = weightsCalculator(returnsStocks,0.05)
 print(gewichten)
-

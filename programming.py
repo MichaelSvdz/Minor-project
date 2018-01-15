@@ -87,7 +87,7 @@ class Fitness:
 
         # Set bounds
         if not allow_short:
-            bounds = [(0, None,) for i in range(len(weights))]              # boundaries for the weights
+            bounds = [(0.05, None,) for i in range(len(weights))]              # boundaries for the weights
         else:
             bounds = None                                                   # there are no boundaries
 

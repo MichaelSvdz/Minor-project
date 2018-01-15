@@ -150,12 +150,12 @@ def genAlg(stocks):
 
 print("Welcome to the portfolio advisor")
 print("To advise the optimal portfolio, please answer these questions:")
-wantedReturn = float(input("What is the minimum return you want (higher return, higher risk)?     "))
+wantedReturn = (float(input("What is the minimum return you want (higher return, higher risk)?     ")) / 100)
 print("Optimize portfolioweigts by Sharpes ratio or minimum variance?")
 sharpe = True if input("Type 'sharpe' for Sharpe, or anything else for minimum variance     ").lower() == 'sharpe' else False
 print("Calculate expected return by mean or evolutionary strategy?")
 evo = False if input("Type 'mean' for mean, or anything else for evolutionary strategy     ").lower() == 'mean' else True
-allow_short = True if input("Type '1' for going short on stocks     ").lower() == '1' else False
+allow_short = True if input("Type '1' for going short on stocks, '0' for otherwise     ").lower() == '1' else False
 if evo:
     print("This will take 15 minutes")
 else:
@@ -172,7 +172,7 @@ bestChrom = Chromosome([0]*len(stocks), 0.00001, [], 0.0)
 bestWeights = []
 
 # Set limitations
-mutProb = 0.05
+mutProb = 0.01
 popSize = 100 # Size of population
 numOfGens = 50 # Amount of generation
 minSIP = 3 # Minimum amount of stocks in portfolio
