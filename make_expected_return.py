@@ -70,7 +70,7 @@ with open("weight_dict.txt", "r") as weight_dict:
             AROONUP = TI.AROONUP(myTI, close_prices[0: number_of_samples])
             AROONDOWN = TI.AROONDOWN(myTI, close_prices[0: number_of_samples])
 
-            indicator_list = [SMA - EMA, GROW, MACD, STOCH, RSI, AROONUP, AROONDOWN]
+            indicator_list = [EMA - SMA, GROW, MACD, STOCH, RSI, AROONUP, AROONDOWN]
 
             stock_name = file.split("\\")[2].split(".")[0]
 

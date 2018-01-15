@@ -1,5 +1,4 @@
 import statistics
-import matplotlib.pyplot as plt
 
 class TI:
     def SMA(self, Lijst):

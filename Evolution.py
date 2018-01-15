@@ -5,8 +5,8 @@ class Regression:
     def regression(self, data):
 
         #Creating training and test data
-        data_test = data[0:200]
-        data_training = data[200:1000]
+        data_test = data[0:50]
+        data_training = data[50:200]
 
         weights = []
         count_good = 0
