@@ -37,7 +37,7 @@ class Fitness:
         realReturns = []
         data = Fitness.getDataClosed(stocks)        # get data
         num_stocks= len(data)
-        min_values = min(min({len(i) for i in data}), 365)    # set length
+        min_values = min(min({len(i) for i in data}), 200)    # set length
         for d in data:                              # shorten data
             d = d[0:min_values]
 
@@ -85,9 +85,11 @@ class Fitness:
         else:   # Use mean returns as expected future return
             returns = Fitness.getMeanReturns(returnsStocks)
 
+        minimumWeights = 0.05
+
         # Set bounds
         if not allow_short:
-            bounds = [(0.05, None,) for i in range(len(weights))]              # boundaries for the weights
+            bounds = [(minimumWeights, 1,) for i in range(len(weights))]              # boundaries for the weights
         else:
             bounds = None                                                   # there are no boundaries
 
@@ -104,7 +106,8 @@ class Fitness:
                                 constraints = cons)
         else:
             cons = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1},
-                    {'type': 'ineq', 'fun':lambda weights: np.dot(weights,returns)-wantedReturn}) # sum of weights must be 1
+                    {'type': 'ineq', 'fun':lambda weights: np.dot(weights,returns)-wantedReturn},
+                    {'type': 'ineq', 'fun': lambda weights: abs(weights) - minimumWeights})# sum of weights must be 1
 
             return minimize(Fitness.unsystematicRisk,
                                 weights,
@@ -122,4 +125,4 @@ class Fitness:
         # Return in last period
         realReturn = np.dot(realReturn, gewichten.x)
 
-        return(portfolioReturn, gewichten.x, realReturn)
+        return(portfolioReturn, gewichten.x, realReturn, gewichten.fun)
