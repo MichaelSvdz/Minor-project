@@ -61,8 +61,7 @@ class Regression:
 
         #Get the best weight set by calling the training function
         best_weights = train_weights(weights,data_training)
-        print(best_weights)
-
+        
         #See how good the best weight set does on the test data
         for day in data_test:
             grow = float(day[0])

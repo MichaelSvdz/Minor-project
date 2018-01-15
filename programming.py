@@ -1,15 +1,20 @@
-import numpy as np
-from scipy.optimize import minimize
 import math
 import glob
+import numpy as np
+from scipy.optimize import minimize
 
-stocks = ["GOOGL","MSFT","AAPL","ACN","ADBE","ADP", "ADS", "ADSK", "AKAM","AMAT","AMD","APH","AVGO","CA","CDNS","CSCO","EBAY"]
 class Fitness:
+    # Takes a list of stocks and returns the daily close prices
     def getDataClosed(stocks):
-        files = []
-        data = []
+        # Initialise variables
+        data = []   # return variable
+        files = []  # path to files variable
+
+        # Build path to stocks
         for s in stocks:
             files.append("datasets/" + s + ".csv")
+
+        # Read files and append to 'data'
         for f in files:
             with open(f, "r") as f:
                 close_prices = []
@@ -18,25 +23,31 @@ class Fitness:
                     row = row.split(",")
                     close_prices.append(row[4])
                 del close_prices[0]
-                close_prices = list(map(float, close_prices))
+                close_prices = list(map(float, close_prices)) # map to floats
                 data.append(close_prices)
+
         return data
 
+    # Calculates return on stock per [amount of days]
+    # Returned list has length of shortest stock on market
     def calculateReturns(stocks):
-        data = Fitness.getDataClosed(stocks)
-        num_stocks= len(data)
-        min_values = min({len(i) for i in data})
-        for lijst in data:
-            lijst = lijst[0:min_values]
+        days = 5                                    # Calculate returns over x days (5 = weekly)
         Totalreturns = []
-        days = 120
+        data = Fitness.getDataClosed(stocks)        # get data
+        num_stocks= len(data)
+        min_values = min({len(i) for i in data})    # set length
+        for d in data:                              # shorten data
+            d = d[0:min_values]
+
         for j in range(num_stocks):
             returns = []
             for i in range(math.floor(min_values/days)-1):
-                returns.append((data[j][days*i]-data[j][days*i+days])/data[j][days*i+days])
+                returns.append((data[j][days*i]-data[j][days*i+days])/data[j][days*i+days]) # add return over rest of periods of days
             Totalreturns.append(returns)
+
         return Totalreturns
 
+    # Returns mean return of each set in returns
     def getMeanReturns(returns):
         mean_returns = []
         for i in range(len(returns)):
@@ -50,25 +61,38 @@ class Fitness:
         return np.dot(weights,expected_returns)
 
     def negativeSharpeRatio(weights,returns,risk_free_rate,cov_matrix):
-        return -(Fitness.totalExpectedReturn(weights,returns)-risk_free_rate)/ math.sqrt(Fitness.unsystematicRisk(cov_matrix, weights))
+        zero = math.sqrt(Fitness.unsystematicRisk(cov_matrix, weights))
+        return -(Fitness.totalExpectedReturn(weights,returns)-risk_free_rate)/ zero
 
+    # Calculates optimal weigths of stock in portfolio
+    # using a minimize model with constraints
     def weightsCalculator(returnsStocks, risk_free_rate, allow_short = False):
+        # Set variables for model
         cov_matrix = np.cov(returnsStocks)
-        weights = [1/len(returnsStocks)]*len(returnsStocks)                     # initial_weights
+        weights = [1/len(returnsStocks)]*len(returnsStocks)                 # initial_weights
         returns = Fitness.getMeanReturns(returnsStocks)
+
+        # Set bounds
         if not allow_short:
             bounds = [(0, None,) for i in range(len(weights))]              # boundaries for the weights
         else:
             bounds = None                                                   # there are no boundaries
+
+        # Set constraints
         cons = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}) # sum of weights must be 1
 
-        minimum = minimize(Fitness.negativeSharpeRatio, weights, args=(returns,risk_free_rate,cov_matrix),
-                           bounds=bounds, constraints = cons)                                       # Maximize SharpeRatio
-        return minimum
+
+        return minimize(Fitness.negativeSharpeRatio,                        # maximize SharpeRatio
+                            weights,
+                            args=(returns,risk_free_rate,cov_matrix),
+                            bounds=bounds, constraints = cons)
 
     def fitness (stocks):
-        #returnstocks
+        # Get past returns on stocks
         returnsStocks = Fitness.calculateReturns(stocks)
+        # Get optimal weights of specific fortfolio
         gewichten = Fitness.weightsCalculator(returnsStocks,0.05)
+        # Calculate expected return of total portfolio
         portfolioReturn = np.dot(Fitness.getMeanReturns(returnsStocks), gewichten.x)
+
         return(portfolioReturn, gewichten)

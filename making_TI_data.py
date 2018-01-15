@@ -6,12 +6,14 @@ import json
 myTI = TI()
 myRegression = Regression()
 number_of_samples = 15
+
 days  = 5
 list_count = []
 dict_weights = {}
 
 #Make a list of all the data files and iterate over them
 datafiles =  glob.glob("datasets/*/*.csv")
+
 for file_name in datafiles:
     print(file_name)
     with open(file_name, "r") as f:
