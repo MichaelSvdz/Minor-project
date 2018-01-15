@@ -3,19 +3,22 @@ import re
 import csv
 import glob
 import random
+import datetime
+from collections import defaultdict
 from programming import Fitness as fit
 
 # Classes
 class Chromosome:
-    def __init__(self, chrom, fitness, weigths):
+    def __init__(self, chrom, fitness, weigths, realReturn):
         self.chrom = chrom
         self.fitness = fitness
         self.weights = weigths
+        self.realReturn = realReturn
 
 # Functions
 def getRandomChromosome():
     array = [0] * chrLngth
-    c = Chromosome(array, 0.01, [])
+    c = Chromosome(array, 0.01, [], 0.0)
     stocks = random.sample(range(chrLngth), random.randint(minSIP, maxSIP))
     for stock in stocks:
         c.chrom[stock] = 1
@@ -29,10 +32,12 @@ def getStocknames(chrom):
             stks.append(stocks[i])
     return(stks)
 
+'''
 def determineFitness(chrom):
-    stks = getStocknames(chrom)
-    ftns, weights = fit.fitness(stks)
+    stks =
+    ftns, weights =
     return(ftns, weights.x)
+'''
 
 def roulettewheelselection(population):
     max = sum(p.fitness for p in population)
@@ -64,14 +69,19 @@ def genAlg(stocks):
 
     # Determine fitness and sort for elitism
     for p in population:
-        ftns, weights = determineFitness(p.chrom)
+        ftns, weights, realReturn = fit.fitness(getStocknames(p.chrom))
         p.fitness = ftns
+        p.weights = weights
+        p.realReturn = realReturn
         #bestChrom = Chromosome(p.chrom[:], p.fitness)
         #bestWeights = weights
     population.sort(key=lambda x: x.fitness, reverse=True)
 
     # Run generations
     for i in range(numOfGens):
+        if i % 50 == 0:
+            print(i, datetime.datetime.now().time())
+
         global bestChrom
         # Make new population variable
         newpopulation = []
@@ -113,8 +123,8 @@ def genAlg(stocks):
             while(sum(j for j in child2) > maxSIP):
                 mutate(child2)
 
-            newpopulation.append(Chromosome(child1, 0, []))
-            newpopulation.append(Chromosome(child2, 0, []))
+            newpopulation.append(Chromosome(child1, 0, [], 0.0))
+            newpopulation.append(Chromosome(child2, 0, [], 0.0))
 
         # Switch out population
         population = newpopulation
@@ -126,18 +136,19 @@ def genAlg(stocks):
 
         # Determine fitness and sort
         for p in population:
-            ftns, weights = determineFitness(p.chrom)
+            ftns, weights, realReturn = fit.fitness(getStocknames(p.chrom))
             p.fitness = ftns
             p.weights = weights
+            p.realReturn = realReturn
         population.sort(key=lambda x: x.fitness, reverse=True)
 
         # Remember best Chromosome
         if population[0].fitness > bestChrom.fitness:
-            bestChrom = Chromosome(population[0].chrom[:], population[0].fitness, population[0].weights)
+            bestChrom = Chromosome(population[0].chrom[:], population[0].fitness, population[0].weights, population[0].realReturn)
 
-    finalPortfolio = {}
+    finalPortfolio = defaultdict(list)
     finalStocks = getStocknames(bestChrom.chrom)
-    print(('-----EINDE-----\nFitness: %s\nPortfolio:') % (bestChrom.fitness))
+    print(('-----EINDE-----\nFitness: %s\nReal return %s\nPortfolio:') % (bestChrom.fitness, bestChrom.realReturn))
     for i in range(len(finalStocks)):
         finalPortfolio[finalStocks[i]] = round(bestChrom.weights[i], 2)
     for fp in finalPortfolio:
@@ -152,15 +163,15 @@ for i in range(50):
         stocks.append(re.split('\/(.*?\/.*?).csv', f)[1])
 
     # Set variables
-    bestChrom = Chromosome([0]*len(stocks), 0.00001, [])
+    bestChrom = Chromosome([0]*len(stocks), 0.00001, [], 0.0)
     bestWeights = []
 
     # Set limitations
     mutProb = 0.05
-    popSize = 20 # Size of population
-    numOfGens = 200 # Amount of generation
-    minSIP = 4 # Minimum amount of stocks in portfolio
-    maxSIP = 6 # Maximum amount of stocks in portfolio
+    popSize = 100 # Size of population
+    numOfGens = 50 # Amount of generation
+    minSIP = 3 # Minimum amount of stocks in portfolio
+    maxSIP = 10 # Maximum amount of stocks in portfolio
 
     # Find best portfolio with these stocks
     genAlg(stocks)

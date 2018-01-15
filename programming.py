@@ -33,9 +33,10 @@ class Fitness:
     def calculateReturns(stocks):
         days = 5                                    # Calculate returns over x days (5 = weekly)
         Totalreturns = []
+        realReturns = []
         data = Fitness.getDataClosed(stocks)        # get data
         num_stocks= len(data)
-        min_values = min({len(i) for i in data})    # set length
+        min_values = min(min({len(i) for i in data}), 365)    # set length
         for d in data:                              # shorten data
             d = d[0:min_values]
 
@@ -45,7 +46,11 @@ class Fitness:
                 returns.append((data[j][days*i]-data[j][days*i+days])/data[j][days*i+days]) # add return over rest of periods of days
             Totalreturns.append(returns)
 
-        return Totalreturns
+        for t in Totalreturns:
+            realReturns.append(t[0])
+            t = t[1:]
+
+        return Totalreturns, realReturns
 
     # Returns mean return of each set in returns
     def getMeanReturns(returns):
@@ -54,22 +59,27 @@ class Fitness:
             mean_returns.append(np.mean(returns[i]))
         return mean_returns
 
-    def unsystematicRisk(cov_matrix, x):
-        return np.dot(np.dot(x.T,np.transpose(cov_matrix)),x)       # unsystematic risk
+    #def unsystematicRisk(cov_matrix, x):
+    #    return np.dot(np.dot(x.T,np.transpose(cov_matrix)),x)       # unsystematic risk
+
+    def unsystematicRisk(weights,cov_matrix):
+        return np.dot(np.dot(weights.T,np.transpose(cov_matrix)),weights)       # unsystematic risk
 
     def totalExpectedReturn(weights,expected_returns):              # total Expected Return of portfolio
         return np.dot(weights,expected_returns)
 
     def negativeSharpeRatio(weights,returns,risk_free_rate,cov_matrix):
-        zero = math.sqrt(Fitness.unsystematicRisk(cov_matrix, weights))
+        zero = math.sqrt(Fitness.unsystematicRisk(weights, cov_matrix))
         return -(Fitness.totalExpectedReturn(weights,returns)-risk_free_rate)/ zero
 
     # Calculates optimal weigths of stock in portfolio
     # using a minimize model with constraints
-    def weightsCalculator(returnsStocks, risk_free_rate, allow_short = False):
+    def weightsCalculator(returnsStocks, risk_free_rate, allow_short = False, Sharpe = False):
         # Set variables for model
+        required_return = 0.005
         cov_matrix = np.cov(returnsStocks)
         weights = [1/len(returnsStocks)]*len(returnsStocks)                 # initial_weights
+        #weights = np.ones(len(returnsStocks)) #minvariance
         returns = Fitness.getMeanReturns(returnsStocks)
 
         # Set bounds
@@ -78,21 +88,35 @@ class Fitness:
         else:
             bounds = None                                                   # there are no boundaries
 
-        # Set constraints
-        cons = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}) # sum of weights must be 1
+        # Splitted on either Sharpe ratio or minimize variance
+        if Sharpe:
+            # Set constraints
+            cons = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}) # sum of weights must be 1
 
 
-        return minimize(Fitness.negativeSharpeRatio,                        # maximize SharpeRatio
-                            weights,
-                            args=(returns,risk_free_rate,cov_matrix),
-                            bounds=bounds, constraints = cons)
+            return minimize(Fitness.negativeSharpeRatio,                        # maximize SharpeRatio
+                                weights,
+                                args=(returns,risk_free_rate,cov_matrix),
+                                bounds=bounds,
+                                constraints = cons)
+        else:
+            cons = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1},
+                    {'type': 'ineq', 'fun':lambda weights: np.dot(weights,returns)-required_return}) # sum of weights must be 1
+
+            return minimize(Fitness.unsystematicRisk,
+                                weights,
+                                args=(cov_matrix),
+                                bounds=bounds,
+                                constraints = cons)
 
     def fitness (stocks):
         # Get past returns on stocks
-        returnsStocks = Fitness.calculateReturns(stocks)
+        returnsStocks, realReturn = Fitness.calculateReturns(stocks)
         # Get optimal weights of specific fortfolio
         gewichten = Fitness.weightsCalculator(returnsStocks,0.05)
         # Calculate expected return of total portfolio
         portfolioReturn = np.dot(Fitness.getMeanReturns(returnsStocks), gewichten.x)
+        # Return in last period
+        realReturn = np.dot(realReturn, Fitness.weightsCalculator(realReturn, 0.05).x)
 
-        return(portfolioReturn, gewichten)
+        return(portfolioReturn, gewichten.x, realReturn)
