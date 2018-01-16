@@ -156,44 +156,43 @@ def genAlg(stocks):
     for fp in finalPortfolio:
         print(fp, finalPortfolio[fp])
 
-for i in range(50):
-    '''
-    print("Welcome to the portfolio advisor")
-    print("To advise the optimal portfolio, please answer these questions:")
-    wantedReturn = (float(input("What is the minimum return you want (higher return, higher risk)?     ")) / 100)
-    print("Optimize portfolioweigts by Sharpes ratio or minimum variance?")
-    sharpe = True if input("Type 'sharpe' for Sharpe, or anything else for minimum variance     ").lower() == 'sharpe' else False
-    print("Calculate expected return by mean or evolutionary strategy?")
-    evo = False if input("Type 'mean' for mean, or anything else for evolutionary strategy     ").lower() == 'mean' else True
-    allow_short = True if input("Type '1' for going short on stocks, '0' for otherwise     ").lower() == '1' else False
-    if evo:
-        print("This will take 15 minutes")
-    else:
-        print("This will take 5 minutes")
-    '''
-    # input for presentation
-    wantedReturn = 0.10
-    sharpe = False
-    evo = False
-    allow_short = False
 
-    # Get all possible stocks
-    stocks = []
-    datafiles =  glob.glob("datasets/*/*.csv")
-    for f in datafiles:
-        stocks.append(re.split('\/(.*?\/.*?).csv', f)[1])
+print("Welcome to the portfolio advisor")
+print("To advise the optimal portfolio, please answer these questions:")
+wantedReturn = (float(input("What is the minimum return you want (higher return, higher risk)?     ")) / 100)
+print("Optimize portfolioweigts by Sharpes ratio or minimum variance?")
+sharpe = True if input("Type 'sharpe' for Sharpe, or anything else for minimum variance     ").lower() == 'sharpe' else False
+print("Calculate expected return by mean or evolutionary strategy?")
+evo = False if input("Type 'mean' for mean, or anything else for evolutionary strategy     ").lower() == 'mean' else True
+allow_short = True if input("Type '1' for going short on stocks, '0' for otherwise     ").lower() == '1' else False
+if evo:
+    print("This will take 15 minutes")
+else:
+    print("This will take 5 minutes")
+'''
+# input for presentation
+wantedReturn = 0.10
+sharpe = False
+evo = False
+allow_short = False
+'''
+# Get all possible stocks
+stocks = []
+datafiles =  glob.glob("datasets/*/*.csv")
+for f in datafiles:
+    stocks.append(re.split('\/(.*?\/.*?).csv', f)[1])
 
-    # Set variables
-    bestChrom = Chromosome([0]*len(stocks), 0.00001, [], 0.0, 100)
-    bestWeights = []
+# Set variables
+bestChrom = Chromosome([0]*len(stocks), 0.00001, [], 0.0, 100)
+bestWeights = []
 
-    # Set limitations
-    mutProb = 0.01
-    crossProb = 0.7
-    popSize = 50 # Size of population
-    numOfGens = 50 # Amount of generation
-    minSIP = 3 # Minimum amount of stocks in portfolio
-    maxSIP = 10 # Maximum amount of stocks in portfolio
+# Set limitations
+mutProb = 0.01
+crossProb = 0.7
+popSize = 50 # Size of population
+numOfGens = 50 # Amount of generation
+minSIP = 3 # Minimum amount of stocks in portfolio
+maxSIP = 10 # Maximum amount of stocks in portfolio
 
-    # Find best portfolio with these stocks
-    genAlg(stocks)
+# Find best portfolio with these stocks
+genAlg(stocks)
